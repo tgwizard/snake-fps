@@ -9,6 +9,7 @@
 - **Damage model:** head 52, torso 31, limbs 19. Clear hit markers reward accuracy without making one accidental hit an instant elimination.
 - **Movement:** first-person walk, sprint, jump, and crouch with a slightly arcadey speed curve. Collision stays simple and forgiving.
 - **Ammo:** 12 foam darts with a short reload. This creates useful breaks in combat without a weapon inventory.
+- **Spawn protection:** every respawn gets a visible two-second shield so nobody is tagged before regaining control.
 
 ## Technical decisions
 
@@ -20,7 +21,7 @@
 
 ## Art decision
 
-- The supplied concept is a visual reference, not copied directly into the game. The in-game title character is an original generated render with a clean transparent cutout.
+- The supplied concept is a visual reference, not copied directly into the game. The in-game title character is an original generated render with a clean transparent cutout, delivered as an optimized WebP with a PNG favicon crop.
 
 ## Deferred
 

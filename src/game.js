@@ -63,6 +63,7 @@ export class CobraClashGame {
       alive: true,
       respawnTimer: 0,
       lastDamageAt: -99,
+      shieldUntil: 0,
       fireCooldown: 0,
       reloadTimer: 0,
       crouchAmount: 0,
@@ -131,6 +132,7 @@ export class CobraClashGame {
       score: 0,
       deaths: 0,
       lastDamageAt: -99,
+      shieldUntil: 0,
       nextShot: 0.5 + Math.random(),
       strafe: index % 2 ? 1 : -1,
       rethinkAt: 0,
@@ -344,7 +346,14 @@ export class CobraClashGame {
       }
 
       bot.character.group.position.set(bot.position.x, 0, bot.position.z);
-      updateCharacterPose(bot.character, this.elapsed + bot.id, speed, bot.health / CONFIG.maxHealth, this.camera);
+      updateCharacterPose(
+        bot.character,
+        this.elapsed + bot.id,
+        speed,
+        bot.health / CONFIG.maxHealth,
+        this.camera,
+        bot.shieldUntil > this.elapsed,
+      );
     }
   }
 
@@ -403,7 +412,7 @@ export class CobraClashGame {
 
   damagePlayer(amount, attacker) {
     const player = this.player;
-    if (!player.alive || this.state !== 'playing') return;
+    if (!player.alive || this.state !== 'playing' || player.shieldUntil > this.elapsed) return;
     player.health = Math.max(0, player.health - amount);
     player.lastDamageAt = this.elapsed;
     this.audio.hurt();
@@ -414,7 +423,7 @@ export class CobraClashGame {
   }
 
   damageBot(bot, amount, attacker, zone) {
-    if (!bot.alive || this.state !== 'playing') return;
+    if (!bot.alive || this.state !== 'playing' || bot.shieldUntil > this.elapsed) return;
     bot.health = Math.max(0, bot.health - amount);
     bot.lastDamageAt = this.elapsed;
     if (bot.health <= 0) this.tagActor(bot, attacker, zone);
@@ -455,6 +464,7 @@ export class CobraClashGame {
     player.reloadTimer = 0;
     player.alive = true;
     player.lastDamageAt = this.elapsed;
+    player.shieldUntil = this.elapsed + CONFIG.spawnShieldSeconds;
     player.yaw = Math.atan2(player.position.x, player.position.z);
     player.pitch = 0;
     this.camera.position.set(player.position.x, CONFIG.eyeHeight, player.position.z);
@@ -471,6 +481,7 @@ export class CobraClashGame {
     bot.alive = true;
     bot.nextShot = 0.65 + Math.random();
     bot.lastDamageAt = this.elapsed;
+    bot.shieldUntil = this.elapsed + CONFIG.spawnShieldSeconds;
     bot.character.group.position.copy(spawn);
     bot.character.group.visible = true;
     bot.target = null;
@@ -597,7 +608,11 @@ export class CobraClashGame {
     this.ui.healthFill.style.background = player.health < 30
       ? 'linear-gradient(90deg, #ff3f56, #ff8b38)'
       : 'linear-gradient(90deg, #75cc36, #d4f64b)';
-    this.ui.healthStatus.textContent = this.elapsed - player.lastDamageAt > CONFIG.regenDelay && player.health < 100 ? 'Healing' : player.health < 35 ? 'Find cover!' : 'Ready';
+    this.ui.healthStatus.textContent = player.shieldUntil > this.elapsed
+      ? `Shield ${Math.ceil(player.shieldUntil - this.elapsed)}s`
+      : this.elapsed - player.lastDamageAt > CONFIG.regenDelay && player.health < 100
+        ? 'Healing'
+        : player.health < 35 ? 'Find cover!' : 'Ready';
     this.ui.ammoNumber.textContent = player.ammo;
     this.ui.reloadLabel.textContent = player.reloadTimer > 0 ? 'RELOADING…' : player.ammo <= 3 ? 'R TO RELOAD' : 'FOAM READY';
     for (const actor of [player, ...this.bots]) {
@@ -632,8 +647,11 @@ export class CobraClashGame {
 
   showResults(ranking) {
     const winner = ranking[0];
-    this.ui.resultsTitle.textContent = winner === this.player ? 'You win!' : `${winner.name} wins!`;
-    this.ui.resultsSubtitle.textContent = winner === this.player ? 'Top cobra in the arena.' : 'Nice match — get them in the rematch!';
+    const draw = ranking[1] && ranking[1].score === winner.score;
+    this.ui.resultsTitle.textContent = draw ? `It's a draw!` : winner === this.player ? 'You win!' : `${winner.name} wins!`;
+    this.ui.resultsSubtitle.textContent = draw
+      ? 'Same score — the rematch decides it.'
+      : winner === this.player ? 'Top cobra in the arena.' : 'Nice match — get them in the rematch!';
     this.ui.resultsList.replaceChildren();
     for (const actor of ranking) {
       const item = document.createElement('li');

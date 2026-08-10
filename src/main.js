@@ -94,6 +94,13 @@ document.addEventListener('pointerlockchange', () => {
   pointerHint.classList.toggle('is-visible', game.state === 'playing' && !locked);
 });
 
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && game.state === 'playing') {
+    document.exitPointerLock?.();
+    game.pause();
+  }
+});
+
 window.addEventListener('keydown', (event) => {
   if (event.code === 'Enter' && game.state === 'menu') play();
 });

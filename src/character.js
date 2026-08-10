@@ -138,12 +138,30 @@ export function createBotCharacter(teamColor) {
   const bar = healthBar();
   group.add(bar.group);
 
+  const shield = mesh(
+    new THREE.SphereGeometry(0.98, 18, 12),
+    new THREE.MeshBasicMaterial({
+      color: 0x61efff,
+      transparent: true,
+      opacity: 0.13,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+    group,
+    [0, 1.52, 0],
+    null,
+    [1, 1.58, 1],
+  );
+  shield.castShadow = false;
+  shield.visible = false;
+
   return {
     group,
     hitboxes,
     muzzle,
     healthBar: bar.group,
     healthFill: bar.fill,
+    shield,
     parts: { leftArm, rightArm, leftLeg, rightLeg, gun },
   };
 }
@@ -152,7 +170,7 @@ export function bindBot(character, bot) {
   for (const box of character.hitboxes) box.userData.bot = bot;
 }
 
-export function updateCharacterPose(character, elapsed, speed, healthRatio, camera) {
+export function updateCharacterPose(character, elapsed, speed, healthRatio, camera, shielded = false) {
   const pace = Math.min(1, speed / 4.5);
   const step = Math.sin(elapsed * (5 + pace * 5));
   character.parts.leftLeg.rotation.z = -0.05 + step * 0.32 * pace;
@@ -163,7 +181,12 @@ export function updateCharacterPose(character, elapsed, speed, healthRatio, came
   character.healthFill.scale.x = Math.max(0.001, healthRatio);
   character.healthFill.position.x = (healthRatio - 1) * 0.48;
   character.healthBar.visible = healthRatio < 0.999;
-  if (camera) character.healthBar.quaternion.copy(camera.quaternion);
+  if (camera) character.healthBar.lookAt(camera.position);
+  character.shield.visible = shielded;
+  if (shielded) {
+    character.shield.material.opacity = 0.1 + Math.sin(elapsed * 8) * 0.035;
+    character.shield.rotation.y = elapsed * 0.7;
+  }
 }
 
 export function createPlayerBlaster(camera) {

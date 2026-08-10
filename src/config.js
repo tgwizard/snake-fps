@@ -1,6 +1,7 @@
 export const CONFIG = Object.freeze({
   matchSeconds: 120,
   respawnSeconds: 5,
+  spawnShieldSeconds: 2,
   maxHealth: 100,
   regenDelay: 4,
   regenPerSecond: 7,
