@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CONFIG } from '../src/config.js';
 import { ARENA_OPTIONS, getArenaPreviewData } from '../src/arena.js';
+import { createBotCharacter } from '../src/character.js';
 import { circleIntersectsBox, damageForZone, formatTime, seededRandom } from '../src/math.js';
 
 test('match timer is formatted for the HUD', () => {
@@ -37,4 +38,17 @@ test('the launch build exposes three distinct arenas', () => {
   const layouts = ARENA_OPTIONS.map((arena) => getArenaPreviewData(arena.id));
   assert.ok(layouts.every((layout) => layout.obstacles.length >= 7));
   assert.equal(new Set(layouts.map((layout) => JSON.stringify(layout.obstacles))).size, 3);
+});
+
+test('cobra models keep the concept-art silhouette and matching hit zones', () => {
+  const character = createBotCharacter(0xff6b35);
+  let visibleMeshes = 0;
+  character.group.traverse((object) => {
+    if (object.isMesh && !object.userData.hitZone) visibleMeshes += 1;
+  });
+  assert.ok(visibleMeshes >= 50);
+  assert.ok(character.hitboxes[0].geometry.parameters.width >= 1.5);
+  assert.equal(character.parts.leftArm.type, 'Group');
+  assert.equal(character.parts.rightArm.type, 'Group');
+  assert.ok(character.healthBar.position.y >= 3.7);
 });

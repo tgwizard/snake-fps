@@ -25,6 +25,7 @@
 ## Art decision
 
 - The supplied concept is a visual reference, not copied directly into the game. The in-game title character is an original generated render with a clean transparent cutout, delivered as an optimized WebP with a PNG favicon crop.
+- The 3D opponents now prioritize the same visual anchors as the concept: a very broad two-tone hood, long plated cobra neck, smiling snout and small fangs, muscular segmented arms, piped sports jersey, bright shorts and gloves, chunky multi-color sneakers, and a thick banded tail. Hit zones were resized to match the new silhouette.
 
 ## Deferred
 

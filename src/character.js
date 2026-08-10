@@ -41,9 +41,52 @@ function hitbox(parent, geometry, position, zone, rotation = null) {
   return object;
 }
 
-function makeEye(parent, x) {
-  const white = mesh(new THREE.SphereGeometry(0.105, 12, 8), toon(0xffffff), parent, [x, 2.75, -0.302], null, [1, 1.18, 0.55]);
-  mesh(new THREE.SphereGeometry(0.052, 10, 7), toon(0x09202a), white, [0, 0, -0.085]);
+function makeEye(parent, x, y, z) {
+  const white = mesh(new THREE.SphereGeometry(0.12, 14, 9), toon(0xffffff), parent, [x, y, z], null, [1, 1.2, 0.58]);
+  mesh(new THREE.SphereGeometry(0.058, 10, 7), toon(0x09202a), white, [0, 0, -0.098]);
+  mesh(new THREE.SphereGeometry(0.018, 7, 5), toon(0xffffff), white, [-0.016, 0.02, -0.148]);
+}
+
+function makeHood(parent, skin, darkSkin, teamColor) {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0.84);
+  shape.bezierCurveTo(-0.46, 0.9, -1.02, 0.58, -1, 0.05);
+  shape.bezierCurveTo(-0.98, -0.4, -0.63, -0.73, -0.25, -0.58);
+  shape.quadraticCurveTo(0, -0.47, 0.25, -0.58);
+  shape.bezierCurveTo(0.63, -0.73, 0.98, -0.4, 1, 0.05);
+  shape.bezierCurveTo(1.02, 0.58, 0.46, 0.9, 0, 0.84);
+
+  const outline = mesh(
+    new THREE.ExtrudeGeometry(shape, { depth: 0.16, bevelEnabled: true, bevelSize: 0.055, bevelThickness: 0.045, bevelSegments: 2, curveSegments: 18 }),
+    darkSkin,
+    parent,
+    [0, 2.6, 0.08],
+    null,
+    [0.83, 0.83, 0.72],
+  );
+  outline.castShadow = true;
+
+  const faceMaterial = skin.clone();
+  faceMaterial.side = THREE.DoubleSide;
+  mesh(new THREE.ShapeGeometry(shape, 18), faceMaterial, parent, [0, 2.6, -0.005], [0, Math.PI, 0], [0.765, 0.765, 1]);
+
+  const innerDark = toon(0x175f55);
+  mesh(new THREE.SphereGeometry(0.48, 16, 10), innerDark, parent, [-0.48, 2.72, -0.065], null, [0.82, 1.05, 0.12]);
+  mesh(new THREE.SphereGeometry(0.48, 16, 10), innerDark, parent, [0.48, 2.72, -0.065], null, [0.82, 1.05, 0.12]);
+  mesh(new THREE.SphereGeometry(0.31, 16, 10), toon(ORANGE), parent, [-0.5, 2.73, -0.115], null, [0.74, 1.04, 0.1]);
+  mesh(new THREE.SphereGeometry(0.31, 16, 10), toon(teamColor), parent, [0.5, 2.73, -0.115], null, [0.74, 1.04, 0.1]);
+}
+
+function makeArm(parent, side, skin, glove) {
+  const arm = new THREE.Group();
+  arm.position.set(side * 0.52, 2.01, -0.02);
+  parent.add(arm);
+  mesh(new THREE.SphereGeometry(0.235, 12, 9), skin, arm, [0, -0.03, 0], null, [1, 1.06, 0.92]);
+  mesh(new THREE.CapsuleGeometry(0.19, 0.3, 5, 10), skin, arm, [side * 0.06, -0.25, -0.05], [0.32, 0, side * -0.18]);
+  mesh(new THREE.CapsuleGeometry(0.155, 0.36, 5, 10), skin, arm, [-side * 0.12, -0.48, -0.28], [0.72, 0, side * 0.12]);
+  mesh(new THREE.SphereGeometry(0.19, 10, 8), glove, arm, [-side * 0.2, -0.51, -0.49], null, [1.05, 0.9, 1.05]);
+  mesh(new THREE.BoxGeometry(0.24, 0.08, 0.22), toon(0xffbd31), arm, [-side * 0.2, -0.43, -0.46]);
+  return arm;
 }
 
 function makeBlaster(parent, compact = false) {
@@ -71,7 +114,7 @@ function healthBar() {
   const fill = mesh(new THREE.PlaneGeometry(0.96, 0.067), new THREE.MeshBasicMaterial({ color: 0xb9ef43, depthTest: false }), group, [0, 0, 0.006]);
   fill.castShadow = false;
   fill.renderOrder = 4;
-  group.position.y = 3.48;
+  group.position.y = 3.72;
   group.visible = false;
   return { group, fill };
 }
@@ -87,59 +130,91 @@ export function createBotCharacter(teamColor) {
   const shorts = toon(0x169c95);
   const shoe = toon(BLUE);
 
-  // Hood and head.
-  mesh(new THREE.SphereGeometry(0.62, 18, 12), darkSkin, group, [0, 2.58, 0], null, [1.2, 1.08, 0.38]);
-  mesh(new THREE.SphereGeometry(0.37, 18, 12), skin, group, [0, 2.65, -0.17], null, [1, 0.88, 1.08]);
-  mesh(new THREE.SphereGeometry(0.28, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), belly, group, [0, 2.55, -0.39], [Math.PI / 2, 0, 0], [0.92, 0.42, 0.48]);
-  makeEye(group, -0.16);
-  makeEye(group, 0.16);
-  mesh(new THREE.BoxGeometry(0.21, 0.025, 0.025), toon(0x1c3b2b), group, [0, 2.52, -0.515]);
+  // The concept's defining cobra silhouette: broad hood, long neck and a warm smile.
+  makeHood(group, skin, darkSkin, teamColor);
+  mesh(new THREE.CylinderGeometry(0.29, 0.4, 0.92, 14), skin, group, [0, 2.36, 0]);
+  for (let plate = 0; plate < 5; plate += 1) {
+    mesh(
+      new THREE.BoxGeometry(0.43 + plate * 0.025, 0.085, 0.055),
+      belly,
+      group,
+      [0, 2.08 + plate * 0.135, -0.345],
+    );
+  }
 
-  // Jersey torso and belly stripe.
-  mesh(new THREE.CapsuleGeometry(0.43, 0.72, 6, 12), jersey, group, [0, 1.68, 0], null, [1.1, 1, 0.72]);
-  mesh(new THREE.BoxGeometry(0.34, 0.74, 0.04), belly, group, [0, 1.72, -0.36]);
-  mesh(new THREE.BoxGeometry(0.88, 0.075, 0.64), toon(0x082f48), group, [0, 1.32, 0]);
+  mesh(new THREE.SphereGeometry(0.42, 20, 14), skin, group, [0, 2.98, -0.24], null, [1.02, 0.9, 1.08]);
+  mesh(new THREE.SphereGeometry(0.31, 18, 12), skin, group, [0, 2.84, -0.5], null, [1.18, 0.62, 0.82]);
+  mesh(new THREE.SphereGeometry(0.25, 16, 10), belly, group, [0, 2.76, -0.49], null, [1.14, 0.36, 0.72]);
+  makeEye(group, -0.18, 3.08, -0.54);
+  makeEye(group, 0.18, 3.08, -0.54);
+  mesh(new THREE.SphereGeometry(0.025, 8, 6), toon(0x17352a), group, [-0.12, 2.91, -0.715], null, [1, 0.55, 0.5]);
+  mesh(new THREE.SphereGeometry(0.025, 8, 6), toon(0x17352a), group, [0.12, 2.91, -0.715], null, [1, 0.55, 0.5]);
+  mesh(new THREE.TorusGeometry(0.2, 0.025, 6, 18, Math.PI), toon(0x4b2030), group, [0, 2.78, -0.695], [0, 0, Math.PI]);
+  mesh(new THREE.ConeGeometry(0.035, 0.15, 8), toon(0xffffff), group, [-0.17, 2.76, -0.695], [0, 0, Math.PI]);
+  mesh(new THREE.ConeGeometry(0.035, 0.15, 8), toon(0xffffff), group, [0.17, 2.76, -0.695], [0, 0, Math.PI]);
 
-  // Arms and gloves, angled toward the blaster.
-  const leftArm = mesh(new THREE.CapsuleGeometry(0.13, 0.52, 5, 10), skin, group, [-0.51, 1.78, -0.13], [0.55, 0, -0.44]);
-  const rightArm = mesh(new THREE.CapsuleGeometry(0.13, 0.52, 5, 10), skin, group, [0.5, 1.77, -0.13], [0.55, 0, 0.44]);
-  mesh(new THREE.SphereGeometry(0.18, 10, 8), shoe, group, [-0.35, 1.49, -0.42]);
-  mesh(new THREE.SphereGeometry(0.18, 10, 8), shoe, group, [0.35, 1.49, -0.42]);
+  // Athletic jersey with the blue piping and pale belly panel from the concept.
+  mesh(new THREE.CapsuleGeometry(0.46, 0.5, 6, 14), jersey, group, [0, 1.7, 0], null, [1.08, 1, 0.75]);
+  mesh(new THREE.BoxGeometry(0.38, 0.65, 0.05), belly, group, [0, 1.68, -0.365]);
+  mesh(new THREE.BoxGeometry(0.085, 0.4, 0.055), shoe, group, [-0.12, 2.12, -0.36], [0, 0, -0.52]);
+  mesh(new THREE.BoxGeometry(0.085, 0.4, 0.055), shoe, group, [0.12, 2.12, -0.36], [0, 0, 0.52]);
+  mesh(new THREE.BoxGeometry(0.08, 0.77, 0.06), shoe, group, [-0.44, 1.68, -0.17]);
+  mesh(new THREE.BoxGeometry(0.08, 0.77, 0.06), shoe, group, [0.44, 1.68, -0.17]);
+  mesh(new THREE.BoxGeometry(0.96, 0.08, 0.66), toon(0x082f48), group, [0, 1.28, 0]);
 
-  // Shorts, legs, and oversized sneakers.
-  mesh(new THREE.BoxGeometry(0.88, 0.42, 0.62), shorts, group, [0, 1.05, 0]);
-  const leftLeg = mesh(new THREE.CapsuleGeometry(0.16, 0.43, 5, 9), skin, group, [-0.26, 0.56, 0], [0, 0, -0.05]);
-  const rightLeg = mesh(new THREE.CapsuleGeometry(0.16, 0.43, 5, 9), skin, group, [0.26, 0.56, 0], [0, 0, 0.05]);
-  mesh(new THREE.BoxGeometry(0.39, 0.25, 0.63), shoe, group, [-0.26, 0.19, -0.12]);
-  mesh(new THREE.BoxGeometry(0.39, 0.25, 0.63), shoe, group, [0.26, 0.19, -0.12]);
-  mesh(new THREE.BoxGeometry(0.39, 0.08, 0.66), toon(0xffffff), group, [-0.26, 0.08, -0.13]);
-  mesh(new THREE.BoxGeometry(0.39, 0.08, 0.66), toon(0xffffff), group, [0.26, 0.08, -0.13]);
+  // Separate upper and lower arm masses make the bots read as the buff mascots in the concept.
+  const leftArm = makeArm(group, -1, skin, shoe);
+  const rightArm = makeArm(group, 1, skin, shoe);
 
-  // Curved tail reads clearly from the side and reinforces the snake silhouette.
+  // Shorts, muscular legs, and large multi-color basketball shoes.
+  mesh(new THREE.BoxGeometry(0.96, 0.43, 0.64), shorts, group, [0, 1.04, 0]);
+  mesh(new THREE.BoxGeometry(0.98, 0.065, 0.66), toon(ORANGE), group, [0, 1.24, 0]);
+  const leftLeg = mesh(new THREE.CapsuleGeometry(0.19, 0.42, 5, 10), skin, group, [-0.27, 0.57, 0], [0, 0, -0.05]);
+  const rightLeg = mesh(new THREE.CapsuleGeometry(0.19, 0.42, 5, 10), skin, group, [0.27, 0.57, 0], [0, 0, 0.05]);
+  for (const side of [-1, 1]) {
+    mesh(new THREE.BoxGeometry(0.45, 0.29, 0.69), shoe, group, [side * 0.27, 0.2, -0.12]);
+    mesh(new THREE.BoxGeometry(0.36, 0.19, 0.23), toon(ORANGE), group, [side * 0.27, 0.21, -0.43]);
+    mesh(new THREE.BoxGeometry(0.45, 0.08, 0.72), toon(0xffffff), group, [side * 0.27, 0.065, -0.13]);
+    for (let lace = 0; lace < 2; lace += 1) {
+      mesh(new THREE.BoxGeometry(0.28, 0.025, 0.035), toon(0xffcf37), group, [side * 0.27, 0.355, -0.2 + lace * 0.08]);
+    }
+  }
+
+  // A thick, curling, banded tail stays visible from side and rear angles.
   const tailCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0.9, 0.18),
-    new THREE.Vector3(0.48, 0.7, 0.48),
-    new THREE.Vector3(0.69, 0.4, 0.55),
-    new THREE.Vector3(0.86, 0.22, 0.25),
+    new THREE.Vector3(0, 1.02, 0.24),
+    new THREE.Vector3(-0.22, 0.82, 0.5),
+    new THREE.Vector3(0.45, 0.62, 0.73),
+    new THREE.Vector3(1.12, 0.4, 0.57),
+    new THREE.Vector3(1.38, 0.34, 0.03),
+    new THREE.Vector3(1.15, 0.52, -0.4),
   ]);
-  mesh(new THREE.TubeGeometry(tailCurve, 16, 0.13, 8, false), darkSkin, group, [0, 0, 0]);
+  mesh(new THREE.TubeGeometry(tailCurve, 28, 0.19, 10, false), darkSkin, group, [0, 0, 0]);
+  mesh(new THREE.TubeGeometry(tailCurve, 28, 0.15, 10, false), skin, group, [0, 0, 0]);
+  for (const position of [0.36, 0.57, 0.76]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.158, 0.032, 7, 12), belly);
+    ring.position.copy(tailCurve.getPointAt(position));
+    ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tailCurve.getTangentAt(position).normalize());
+    ring.castShadow = true;
+    group.add(ring);
+  }
 
   const { gun, muzzle } = makeBlaster(group, true);
   gun.position.set(0, 1.52, -0.52);
   gun.rotation.x = -0.06;
 
   const hitboxes = [
-    hitbox(group, new THREE.SphereGeometry(0.5, 8, 6), [0, 2.62, -0.05], 'head'),
-    hitbox(group, new THREE.BoxGeometry(0.98, 1.18, 0.72), [0, 1.64, 0], 'torso'),
-    hitbox(group, new THREE.BoxGeometry(1.4, 0.42, 0.52), [0, 1.75, -0.1], 'limb'),
-    hitbox(group, new THREE.BoxGeometry(0.88, 0.92, 0.58), [0, 0.55, 0], 'limb'),
+    hitbox(group, new THREE.BoxGeometry(1.62, 1.25, 0.82), [0, 2.72, -0.02], 'head'),
+    hitbox(group, new THREE.BoxGeometry(1.05, 1.2, 0.74), [0, 1.66, 0], 'torso'),
+    hitbox(group, new THREE.BoxGeometry(1.58, 0.56, 0.68), [0, 1.75, -0.16], 'limb'),
+    hitbox(group, new THREE.BoxGeometry(0.94, 0.95, 0.62), [0, 0.56, 0], 'limb'),
   ];
 
   const bar = healthBar();
   group.add(bar.group);
 
   const shield = mesh(
-    new THREE.SphereGeometry(0.98, 18, 12),
+    new THREE.SphereGeometry(1.08, 18, 12),
     new THREE.MeshBasicMaterial({
       color: 0x61efff,
       transparent: true,
@@ -148,9 +223,9 @@ export function createBotCharacter(teamColor) {
       side: THREE.DoubleSide,
     }),
     group,
-    [0, 1.52, 0],
+    [0, 1.7, 0],
     null,
-    [1, 1.58, 1],
+    [1, 1.63, 1],
   );
   shield.castShadow = false;
   shield.visible = false;
@@ -175,8 +250,8 @@ export function updateCharacterPose(character, elapsed, speed, healthRatio, came
   const step = Math.sin(elapsed * (5 + pace * 5));
   character.parts.leftLeg.rotation.z = -0.05 + step * 0.32 * pace;
   character.parts.rightLeg.rotation.z = 0.05 - step * 0.32 * pace;
-  character.parts.leftArm.rotation.z = -0.44 - step * 0.05 * pace;
-  character.parts.rightArm.rotation.z = 0.44 + step * 0.05 * pace;
+  character.parts.leftArm.rotation.z = -0.055 - step * 0.035 * pace;
+  character.parts.rightArm.rotation.z = 0.055 + step * 0.035 * pace;
   character.parts.gun.position.y = 1.52 + Math.abs(step) * 0.02;
   character.healthFill.scale.x = Math.max(0.001, healthRatio);
   character.healthFill.position.x = (healthRatio - 1) * 0.48;
