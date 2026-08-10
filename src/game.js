@@ -92,9 +92,13 @@ export class CobraClashGame {
     this.blaster.anchor.visible = false;
   }
 
-  startMatch(botCount, difficulty) {
+  startMatch(botCount, difficulty, arenaId = 'sunset') {
     this.clearBots();
     this.clearEffects();
+    if (this.arena.id !== arenaId) {
+      this.arena.dispose();
+      this.arena = createArena(this.scene, arenaId);
+    }
     this.difficulty = clamp(difficulty, 1, 5);
     this.matchTime = CONFIG.matchSeconds;
     this.elapsed = 0;

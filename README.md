@@ -1,6 +1,6 @@
 # Cobra Clash
 
-A colorful, child-friendly first-person foam-dart arena game. Play a two-minute free-for-all against adjustable bots, score one point per tag, and jump back in after a five-second respawn.
+A colorful, child-friendly first-person foam-dart arena game. Play a two-minute free-for-all against adjustable bots across three arenas, score one point per tag, and jump back in after a five-second respawn.
 
 Play: https://tgwizard.github.io/snake-fps/
 

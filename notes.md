@@ -10,6 +10,7 @@
 - **Movement:** first-person walk, sprint, jump, and crouch with a slightly arcadey speed curve. Collision stays simple and forgiving.
 - **Ammo:** 12 foam darts with a short reload. This creates useful breaks in combat without a weapon inventory.
 - **Spawn protection:** every respawn gets a visible two-second shield so nobody is tagged before regaining control.
+- **Arenas:** the first release includes three layouts: Sunset Sports Court has circular routes and mixed-height cover; Ice Pop Plaza has long accuracy lanes around a chunky center; Jungle Gym is an offset maze built for flanking.
 
 ## Technical decisions
 
@@ -26,5 +27,4 @@
 ## Deferred
 
 - LAN multiplayer and multiple human players.
-- Multiple maps (the first arena establishes the combat loop; more arenas should follow once movement and bot navigation are proven).
 - Additional blaster types and pickups.

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CONFIG } from '../src/config.js';
+import { ARENA_OPTIONS } from '../src/arena.js';
 import { circleIntersectsBox, damageForZone, formatTime, seededRandom } from '../src/math.js';
 
 test('match timer is formatted for the HUD', () => {
@@ -28,4 +29,9 @@ test('seeded random sequences are repeatable', () => {
   const first = seededRandom(42);
   const second = seededRandom(42);
   assert.deepEqual([first(), first(), first()], [second(), second(), second()]);
+});
+
+test('the launch build exposes three distinct arenas', () => {
+  assert.deepEqual(ARENA_OPTIONS.map((arena) => arena.id), ['sunset', 'ice', 'jungle']);
+  assert.equal(new Set(ARENA_OPTIONS.map((arena) => arena.name)).size, 3);
 });

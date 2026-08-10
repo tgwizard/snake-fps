@@ -2,17 +2,43 @@ import * as THREE from '../vendor/three.module.js';
 import { CONFIG } from './config.js';
 import { circleIntersectsBox } from './math.js';
 
-const MAT = {
-  wall: 0x123c4d,
-  wallTop: 0x1e6070,
-  teal: 0x27c8b5,
-  orange: 0xff6b2d,
-  lime: 0xa6df3a,
-  blue: 0x267cc8,
-  cream: 0xffe7b0,
-};
+export const ARENA_OPTIONS = Object.freeze([
+  Object.freeze({ id: 'sunset', name: 'Sunset Sports Court' }),
+  Object.freeze({ id: 'ice', name: 'Ice Pop Plaza' }),
+  Object.freeze({ id: 'jungle', name: 'Jungle Gym' }),
+]);
 
-function canvasTexture(label, color, accent = '#b9ef43') {
+const THEMES = Object.freeze({
+  sunset: Object.freeze({
+    id: 'sunset', name: 'Sunset Sports Court', banner: 'SUNSET COURT',
+    skyTop: 0x37bcd0, skyBottom: 0xf7e5a0, fog: 0x7fced0,
+    hemiSky: 0xdafcff, hemiGround: 0x715b35, sun: 0xffefc4,
+    floor: 0x51a8a2, court: 0xe4c87a, line: 0xfff1c2,
+    wall: 0x123c4d, wallTop: 0x1e6070,
+    a: 0xff6b2d, b: 0x27c8b5, c: 0xa6df3a, d: 0x267cc8, cream: 0xffe7b0,
+    bannerColor: '#0b5667', bannerAccent: '#b9ef43',
+  }),
+  ice: Object.freeze({
+    id: 'ice', name: 'Ice Pop Plaza', banner: 'ICE POP PLAZA',
+    skyTop: 0x3785ce, skyBottom: 0xdffbff, fog: 0xb8e5ef,
+    hemiSky: 0xecffff, hemiGround: 0x47729a, sun: 0xffffff,
+    floor: 0x65bfd0, court: 0xe9f6ed, line: 0x7fdce6,
+    wall: 0x294d78, wallTop: 0x536fa4,
+    a: 0xf177b4, b: 0x59d9e8, c: 0x7694ef, d: 0xf3fbff, cream: 0xdfffff,
+    bannerColor: '#2359a0', bannerAccent: '#80edf1',
+  }),
+  jungle: Object.freeze({
+    id: 'jungle', name: 'Jungle Gym', banner: 'JUNGLE GYM',
+    skyTop: 0x3cb8a1, skyBottom: 0xf5e596, fog: 0x92cfa1,
+    hemiSky: 0xe2ffe3, hemiGround: 0x4c663c, sun: 0xffe8a6,
+    floor: 0x5ca855, court: 0xd8c66b, line: 0xffe6a1,
+    wall: 0x285d3c, wallTop: 0x397d4c,
+    a: 0xf3872a, b: 0x1aa18a, c: 0x8fd043, d: 0xffca3c, cream: 0xffe3a1,
+    bannerColor: '#255d3a', bannerAccent: '#ff9a2f',
+  }),
+});
+
+function canvasTexture(label, color, accent) {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 192;
@@ -30,7 +56,7 @@ function canvasTexture(label, color, accent = '#b9ef43') {
   ctx.lineWidth = 10;
   ctx.strokeRect(10, 10, 492, 172);
   ctx.fillStyle = '#fff8db';
-  ctx.font = '900 62px Arial Black, sans-serif';
+  ctx.font = `900 ${label.length > 11 ? 46 : 58}px Arial Black, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.shadowColor = 'rgba(0,0,0,.35)';
@@ -41,13 +67,13 @@ function canvasTexture(label, color, accent = '#b9ef43') {
   return texture;
 }
 
-function createSky() {
+function createSky(theme) {
   const geometry = new THREE.SphereGeometry(85, 24, 14);
   const material = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     uniforms: {
-      topColor: { value: new THREE.Color(0x37bcd0) },
-      bottomColor: { value: new THREE.Color(0xf7e5a0) },
+      topColor: { value: new THREE.Color(theme.skyTop) },
+      bottomColor: { value: new THREE.Color(theme.skyBottom) },
       offset: { value: 8 },
       exponent: { value: 0.65 },
     },
@@ -67,20 +93,20 @@ function createSky() {
   return new THREE.Mesh(geometry, material);
 }
 
-export function createArena(scene) {
+export function createArena(scene, arenaId = 'sunset') {
+  const theme = THEMES[arenaId] ?? THEMES.sunset;
   const root = new THREE.Group();
-  root.name = 'Sunset Sports Court';
+  root.name = theme.name;
   scene.add(root);
-  scene.add(createSky());
+  root.add(createSky(theme));
 
   const colliders = [];
   const shotBlockers = [];
   const animated = [];
 
-  scene.fog = new THREE.Fog(0x7fced0, 27, 68);
-  const hemi = new THREE.HemisphereLight(0xdafcff, 0x715b35, 2.6);
-  root.add(hemi);
-  const sun = new THREE.DirectionalLight(0xffefc4, 3.1);
+  scene.fog = new THREE.Fog(theme.fog, 27, 68);
+  root.add(new THREE.HemisphereLight(theme.hemiSky, theme.hemiGround, 2.6));
+  const sun = new THREE.DirectionalLight(theme.sun, 3.1);
   sun.position.set(-13, 23, 9);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
@@ -93,7 +119,7 @@ export function createArena(scene) {
 
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(CONFIG.arenaHalfSize * 2, CONFIG.arenaHalfSize * 2),
-    new THREE.MeshStandardMaterial({ color: 0x51a8a2, roughness: 0.88, metalness: 0.03 }),
+    new THREE.MeshStandardMaterial({ color: theme.floor, roughness: 0.88, metalness: 0.03 }),
   );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
@@ -103,7 +129,7 @@ export function createArena(scene) {
 
   const court = new THREE.Mesh(
     new THREE.CircleGeometry(18.5, 64),
-    new THREE.MeshStandardMaterial({ color: 0xe4c87a, roughness: 0.93 }),
+    new THREE.MeshStandardMaterial({ color: theme.court, roughness: 0.93 }),
   );
   court.rotation.x = -Math.PI / 2;
   court.position.y = 0.012;
@@ -112,13 +138,13 @@ export function createArena(scene) {
 
   const ring = new THREE.Mesh(
     new THREE.RingGeometry(17.5, 18.2, 64),
-    new THREE.MeshBasicMaterial({ color: MAT.orange, side: THREE.DoubleSide }),
+    new THREE.MeshBasicMaterial({ color: theme.a, side: THREE.DoubleSide }),
   );
   ring.rotation.x = -Math.PI / 2;
   ring.position.y = 0.023;
   root.add(ring);
 
-  const linesMaterial = new THREE.MeshBasicMaterial({ color: 0xfff1c2 });
+  const linesMaterial = new THREE.MeshBasicMaterial({ color: theme.line });
   for (let i = -2; i <= 2; i += 1) {
     const line = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 35), linesMaterial);
     line.rotation.x = -Math.PI / 2;
@@ -127,15 +153,15 @@ export function createArena(scene) {
   }
 
   function addBox(x, z, width, depth, height, color, options = {}) {
-    const mesh = new THREE.Mesh(
+    const object = new THREE.Mesh(
       new THREE.BoxGeometry(width, height, depth),
       new THREE.MeshStandardMaterial({ color, roughness: 0.73, metalness: options.metalness ?? 0.02 }),
     );
-    mesh.position.set(x, height / 2, z);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    root.add(mesh);
-    shotBlockers.push(mesh);
+    object.position.set(x, height / 2, z);
+    object.castShadow = true;
+    object.receiveShadow = true;
+    root.add(object);
+    shotBlockers.push(object);
     if (options.collide !== false) {
       colliders.push({
         minX: x - width / 2,
@@ -153,26 +179,47 @@ export function createArena(scene) {
       stripe.position.set(x, Math.min(height - 0.2, height * 0.68), z);
       root.add(stripe);
     }
-    return mesh;
+    return object;
   }
 
   const h = CONFIG.arenaHalfSize;
-  addBox(0, -h - 0.45, h * 2 + 1.8, 0.9, 4.2, MAT.wall, { stripe: MAT.lime });
-  addBox(0, h + 0.45, h * 2 + 1.8, 0.9, 4.2, MAT.wall, { stripe: MAT.lime });
-  addBox(-h - 0.45, 0, 0.9, h * 2, 4.2, MAT.wall, { stripe: MAT.orange });
-  addBox(h + 0.45, 0, 0.9, h * 2, 4.2, MAT.wall, { stripe: MAT.orange });
+  addBox(0, -h - 0.45, h * 2 + 1.8, 0.9, 4.2, theme.wall, { stripe: theme.c });
+  addBox(0, h + 0.45, h * 2 + 1.8, 0.9, 4.2, theme.wall, { stripe: theme.c });
+  addBox(-h - 0.45, 0, 0.9, h * 2, 4.2, theme.wall, { stripe: theme.a });
+  addBox(h + 0.45, 0, 0.9, h * 2, 4.2, theme.wall, { stripe: theme.a });
 
-  // Low, colorful cover arranged to make circular routes through the court.
-  addBox(-9.5, -10.5, 5.2, 1.35, 1.5, MAT.blue, { stripe: MAT.cream });
-  addBox(10.5, -8.5, 1.35, 5.2, 1.5, MAT.teal, { stripe: MAT.cream });
-  addBox(9.5, 10.5, 5.2, 1.35, 1.5, MAT.orange, { stripe: MAT.cream });
-  addBox(-10.5, 8.5, 1.35, 5.2, 1.5, MAT.lime, { stripe: MAT.cream });
-  addBox(-3.8, -3.2, 2.4, 4.8, 2.35, MAT.wallTop, { stripe: MAT.orange });
-  addBox(3.8, 3.2, 2.4, 4.8, 2.35, MAT.wallTop, { stripe: MAT.teal });
-  addBox(5.1, -3.9, 3.4, 1.25, 1.1, MAT.orange, { stripe: MAT.cream });
-  addBox(-5.1, 3.9, 3.4, 1.25, 1.1, MAT.teal, { stripe: MAT.cream });
+  if (theme.id === 'sunset') {
+    // Circular routes with mixed high and low cover.
+    addBox(-9.5, -10.5, 5.2, 1.35, 1.5, theme.d, { stripe: theme.cream });
+    addBox(10.5, -8.5, 1.35, 5.2, 1.5, theme.b, { stripe: theme.cream });
+    addBox(9.5, 10.5, 5.2, 1.35, 1.5, theme.a, { stripe: theme.cream });
+    addBox(-10.5, 8.5, 1.35, 5.2, 1.5, theme.c, { stripe: theme.cream });
+    addBox(-3.8, -3.2, 2.4, 4.8, 2.35, theme.wallTop, { stripe: theme.a });
+    addBox(3.8, 3.2, 2.4, 4.8, 2.35, theme.wallTop, { stripe: theme.b });
+    addBox(5.1, -3.9, 3.4, 1.25, 1.1, theme.a, { stripe: theme.cream });
+    addBox(-5.1, 3.9, 3.4, 1.25, 1.1, theme.b, { stripe: theme.cream });
+  } else if (theme.id === 'ice') {
+    // Long icy lanes reward accuracy, while the center block breaks sight lines.
+    addBox(-8, -6, 1.35, 8.2, 2.1, theme.wallTop, { stripe: theme.b });
+    addBox(8, 6, 1.35, 8.2, 2.1, theme.wallTop, { stripe: theme.a });
+    addBox(-8, 9, 6.2, 1.35, 1.35, theme.d, { stripe: theme.c });
+    addBox(8, -9, 6.2, 1.35, 1.35, theme.d, { stripe: theme.a });
+    addBox(0, 0, 4.4, 4.4, 1.2, theme.c, { stripe: theme.cream });
+    addBox(-13.5, 1.5, 3.1, 1.25, 1.05, theme.a, { stripe: theme.cream });
+    addBox(13.5, -1.5, 3.1, 1.25, 1.05, theme.b, { stripe: theme.cream });
+  } else {
+    // Offset jungle-gym bars create a playful maze with several flank routes.
+    addBox(-9, -8, 7.2, 1.35, 1.6, theme.a, { stripe: theme.cream });
+    addBox(9, 8, 7.2, 1.35, 1.6, theme.b, { stripe: theme.cream });
+    addBox(-7.5, 7.2, 1.35, 7.2, 2.2, theme.wallTop, { stripe: theme.d });
+    addBox(7.5, -7.2, 1.35, 7.2, 2.2, theme.wallTop, { stripe: theme.c });
+    addBox(0, -4.3, 5.4, 1.25, 1.15, theme.d, { stripe: theme.a });
+    addBox(0, 4.3, 5.4, 1.25, 1.15, theme.c, { stripe: theme.b });
+    addBox(-14, 0, 1.2, 4.2, 1.4, theme.b, { stripe: theme.cream });
+    addBox(14, 0, 1.2, 4.2, 1.4, theme.a, { stripe: theme.cream });
+  }
 
-  for (const [x, z, color] of [[-17, -15, MAT.orange], [17, -15, MAT.teal], [-17, 15, MAT.lime], [17, 15, MAT.blue]]) {
+  for (const [x, z, color] of [[-17, -15, theme.a], [17, -15, theme.b], [-17, 15, theme.c], [17, 15, theme.d]]) {
     const post = new THREE.Mesh(
       new THREE.CylinderGeometry(0.62, 0.78, 4.8, 10),
       new THREE.MeshStandardMaterial({ color, roughness: 0.65 }),
@@ -184,7 +231,7 @@ export function createArena(scene) {
     colliders.push({ minX: x - 0.72, maxX: x + 0.72, minZ: z - 0.72, maxZ: z + 0.72, height: 4.8 });
     const crown = new THREE.Mesh(
       new THREE.TorusGeometry(0.95, 0.15, 8, 18),
-      new THREE.MeshStandardMaterial({ color: MAT.cream, emissive: color, emissiveIntensity: 0.15 }),
+      new THREE.MeshStandardMaterial({ color: theme.cream, emissive: color, emissiveIntensity: 0.15 }),
     );
     crown.position.set(x, 4.75, z);
     crown.rotation.x = Math.PI / 2;
@@ -192,7 +239,10 @@ export function createArena(scene) {
     animated.push(crown);
   }
 
-  const bannerMaterial = new THREE.MeshBasicMaterial({ map: canvasTexture('COBRA CLASH', '#0b5667'), side: THREE.DoubleSide });
+  const bannerMaterial = new THREE.MeshBasicMaterial({
+    map: canvasTexture(theme.banner, theme.bannerColor, theme.bannerAccent),
+    side: THREE.DoubleSide,
+  });
   for (const [x, y, z, ry] of [[0, 2.7, -22.93, 0], [0, 2.7, 22.93, Math.PI], [-22.93, 2.7, 0, Math.PI / 2], [22.93, 2.7, 0, -Math.PI / 2]]) {
     const banner = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 2.7), bannerMaterial);
     banner.position.set(x, y, z);
@@ -223,5 +273,17 @@ export function createArena(scene) {
     });
   }
 
-  return { root, colliders, shotBlockers, spawnPoints, collides, update };
+  function dispose() {
+    scene.remove(root);
+    root.traverse((object) => {
+      object.geometry?.dispose();
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      for (const material of materials) {
+        material?.map?.dispose();
+        material?.dispose?.();
+      }
+    });
+  }
+
+  return { id: theme.id, name: theme.name, root, colliders, shotBlockers, spawnPoints, collides, update, dispose };
 }

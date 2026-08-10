@@ -62,12 +62,20 @@ difficulty.addEventListener('input', updateDifficulty);
 updateDifficulty();
 
 function requestAim() {
-  canvas.requestPointerLock?.();
+  if (!canvas.requestPointerLock) {
+    game.pause();
+    return;
+  }
+  const request = canvas.requestPointerLock();
+  request?.catch?.(() => game.pause());
+  setTimeout(() => {
+    if (game.state === 'playing' && document.pointerLockElement !== canvas) game.pause();
+  }, 500);
 }
 
 function play() {
   audio.start();
-  game.startMatch(Number($('#bot-count').value), Number(difficulty.value));
+  game.startMatch(Number($('#bot-count').value), Number(difficulty.value), $('#arena').value);
   requestAim();
 }
 
@@ -81,7 +89,7 @@ $('#quit-button').addEventListener('click', () => game.quitToMenu());
 $('#menu-button').addEventListener('click', () => game.quitToMenu());
 $('#rematch-button').addEventListener('click', () => {
   audio.start();
-  game.startMatch(Number($('#bot-count').value), Number(difficulty.value));
+  game.startMatch(Number($('#bot-count').value), Number(difficulty.value), $('#arena').value);
   requestAim();
 });
 canvas.addEventListener('click', () => {
