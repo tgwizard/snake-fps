@@ -1,0 +1,11 @@
+{
+  "name": "cobra-clash",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "python3 -m http.server 9922",
+    "test": "node --test",
+    "check": "node --check src/*.js"
+  }
+}

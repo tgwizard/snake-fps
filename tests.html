@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><title>Cobra Clash tests</title></head>
+  <body>
+    <h1>Cobra Clash browser smoke test</h1>
+    <p id="result">Running…</p>
+    <script type="module">
+      import { CONFIG } from './src/config.js';
+      import { formatTime, damageForZone } from './src/math.js';
+      const checks = [
+        [formatTime(CONFIG.matchSeconds) === '2:00', 'two-minute timer'],
+        [damageForZone('head', CONFIG.zoneDamage) > damageForZone('torso', CONFIG.zoneDamage), 'head damage'],
+        [damageForZone('torso', CONFIG.zoneDamage) > damageForZone('limb', CONFIG.zoneDamage), 'limb damage'],
+      ];
+      const failed = checks.filter(([passed]) => !passed);
+      const result = document.querySelector('#result');
+      result.textContent = failed.length ? `FAIL: ${failed.map(([, name]) => name).join(', ')}` : `PASS: ${checks.length} checks`;
+      result.dataset.passed = failed.length ? 'false' : 'true';
+    </script>
+  </body>
+</html>

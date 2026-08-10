@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#071a26" />
+    <meta name="description" content="Cobra Clash — a colorful, child-friendly arena FPS." />
+    <title>Cobra Clash</title>
+    <link rel="preload" href="assets/cobra-player.png" as="image" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="game-shell">
+      <canvas id="game" aria-label="Cobra Clash game arena"></canvas>
+
+      <section id="menu" class="screen is-visible" aria-labelledby="game-title">
+        <div class="menu-noise"></div>
+        <div class="menu-copy">
+          <div class="eyebrow"><span class="live-dot"></span> FOAM-DART ARENA</div>
+          <h1 id="game-title"><span>COBRA</span> CLASH</h1>
+          <p class="tagline">Slither in. Gear up. Rule the arena.</p>
+
+          <div class="match-card">
+            <div class="match-card-title">Quick match</div>
+            <label for="difficulty">
+              <span>Bot skill</span>
+              <output id="difficulty-label" for="difficulty">Sporty</output>
+            </label>
+            <input id="difficulty" type="range" min="1" max="5" value="2" />
+
+            <label for="bot-count">
+              <span>Opponents</span>
+              <select id="bot-count">
+                <option value="1">1 cobra</option>
+                <option value="2">2 cobras</option>
+                <option value="3" selected>3 cobras</option>
+                <option value="4">4 cobras</option>
+                <option value="5">5 cobras</option>
+              </select>
+            </label>
+
+            <button id="play-button" class="primary-button" type="button">
+              <span>PLAY MATCH</span><kbd>ENTER</kbd>
+            </button>
+          </div>
+
+          <div class="controls-row" aria-label="Controls">
+            <span><kbd>WASD</kbd> move</span>
+            <span><kbd>SHIFT</kbd> sprint</span>
+            <span><kbd>SPACE</kbd> jump</span>
+            <span><kbd>CLICK</kbd> fire</span>
+          </div>
+        </div>
+
+        <div class="menu-art" aria-hidden="true">
+          <div class="sunburst"></div>
+          <div class="player-shadow"></div>
+          <img src="assets/cobra-player.png" alt="" />
+          <div class="sticker">2 MIN<br /><small>FREE-FOR-ALL</small></div>
+        </div>
+      </section>
+
+      <section id="hud" class="hud" aria-hidden="true">
+        <div class="hud-top">
+          <div id="score-strip" class="score-strip"></div>
+          <div class="clock-card"><span>MATCH</span><strong id="timer">2:00</strong></div>
+        </div>
+
+        <div id="event-feed" class="event-feed" aria-live="polite"></div>
+        <div id="announcement" class="announcement"></div>
+
+        <div class="crosshair" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><b id="hit-marker"></b>
+        </div>
+
+        <div class="hud-bottom">
+          <div class="vitals-panel">
+            <div class="vitals-head"><span>HEALTH</span><strong id="health-number">100</strong></div>
+            <div class="meter health-meter"><i id="health-fill"></i></div>
+            <div class="meter-label"><span id="health-status">Ready</span><span>auto-heal</span></div>
+          </div>
+
+          <div class="ammo-panel">
+            <span>FOAM DARTS</span>
+            <strong id="ammo-number">12</strong><small>/12</small>
+            <div id="reload-label" class="reload-label">R TO RELOAD</div>
+          </div>
+        </div>
+
+        <div id="damage-flash" class="damage-flash"></div>
+      </section>
+
+      <section id="pause-screen" class="screen modal-screen" aria-labelledby="pause-title">
+        <div class="modal-card">
+          <div class="eyebrow">TIME OUT</div>
+          <h2 id="pause-title">Paused</h2>
+          <p>Click below to jump back into the arena.</p>
+          <button id="resume-button" class="primary-button" type="button">RESUME</button>
+          <button id="quit-button" class="text-button" type="button">Quit to menu</button>
+        </div>
+      </section>
+
+      <section id="respawn-screen" class="screen respawn-screen" aria-live="assertive">
+        <div>
+          <span>TAGGED OUT</span>
+          <strong id="respawn-count">5</strong>
+          <small>Back in the arena in…</small>
+        </div>
+      </section>
+
+      <section id="results-screen" class="screen modal-screen" aria-labelledby="results-title">
+        <div class="modal-card results-card">
+          <div class="eyebrow">FINAL WHISTLE</div>
+          <h2 id="results-title">Match complete</h2>
+          <p id="results-subtitle">Great game!</p>
+          <ol id="results-list" class="results-list"></ol>
+          <button id="rematch-button" class="primary-button" type="button">REMATCH</button>
+          <button id="menu-button" class="text-button" type="button">Change setup</button>
+        </div>
+      </section>
+
+      <div id="pointer-hint" class="pointer-hint">Click the arena to aim</div>
+      <div id="loading" class="loading"><span></span> Building arena…</div>
+      <div id="mobile-notice">Cobra Clash is designed for a keyboard and mouse.</div>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
