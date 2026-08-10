@@ -17,6 +17,7 @@
 - Static HTML/CSS/ES modules with no build step, matching the deployment shape of recent sibling game repositories.
 - Three.js is pinned and vendored in `vendor/` so the game does not depend on a third-party CDN at runtime.
 - GitHub Pages deploys the repository root using the official Pages actions on every push to `main`.
+- Pages runs unit, syntax, asset-reference, and vendored-module checks before deploying, preventing an incomplete static runtime from reaching the live site.
 - Arena geometry and characters are assembled from lightweight primitives. The generated cobra illustration is used as menu art; gameplay remains performant and readable from every angle.
 - Web Audio generates short UI and blaster sounds in code, avoiding more asset downloads and making mute/volume support straightforward later.
 
