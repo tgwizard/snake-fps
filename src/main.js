@@ -1,5 +1,6 @@
 import { CONFIG } from './config.js';
 import { GameAudio } from './audio.js';
+import { renderArenaPreviews } from './arena-preview.js';
 import { CobraClashGame } from './game.js';
 import { InputController } from './input.js';
 
@@ -13,6 +14,7 @@ const resultsScreen = $('#results-screen');
 const pointerHint = $('#pointer-hint');
 const difficulty = $('#difficulty');
 const difficultyLabel = $('#difficulty-label');
+const selectedArena = () => document.querySelector('input[name="arena"]:checked').value;
 
 const ui = {
   timer: $('#timer'),
@@ -75,7 +77,7 @@ function requestAim() {
 
 function play() {
   audio.start();
-  game.startMatch(Number($('#bot-count').value), Number(difficulty.value), $('#arena').value);
+  game.startMatch(Number($('#bot-count').value), Number(difficulty.value), selectedArena());
   requestAim();
 }
 
@@ -89,7 +91,7 @@ $('#quit-button').addEventListener('click', () => game.quitToMenu());
 $('#menu-button').addEventListener('click', () => game.quitToMenu());
 $('#rematch-button').addEventListener('click', () => {
   audio.start();
-  game.startMatch(Number($('#bot-count').value), Number(difficulty.value), $('#arena').value);
+  game.startMatch(Number($('#bot-count').value), Number(difficulty.value), selectedArena());
   requestAim();
 });
 canvas.addEventListener('click', () => {
@@ -123,4 +125,5 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 requestAnimationFrame(() => $('#loading').classList.add('is-hidden'));
+renderArenaPreviews();
 syncScreens('menu');

@@ -3,9 +3,9 @@ import { CONFIG } from './config.js';
 import { circleIntersectsBox } from './math.js';
 
 export const ARENA_OPTIONS = Object.freeze([
-  Object.freeze({ id: 'sunset', name: 'Sunset Sports Court' }),
-  Object.freeze({ id: 'ice', name: 'Ice Pop Plaza' }),
-  Object.freeze({ id: 'jungle', name: 'Jungle Gym' }),
+  Object.freeze({ id: 'sunset', name: 'Sunset Court', detail: 'Balanced routes' }),
+  Object.freeze({ id: 'ice', name: 'Ice Pop Plaza', detail: 'Long sight lines' }),
+  Object.freeze({ id: 'jungle', name: 'Jungle Gym', detail: 'Tight flanks' }),
 ]);
 
 const THEMES = Object.freeze({
@@ -37,6 +37,54 @@ const THEMES = Object.freeze({
     bannerColor: '#255d3a', bannerAccent: '#ff9a2f',
   }),
 });
+
+const LAYOUTS = Object.freeze({
+  sunset: Object.freeze([
+    [-9.5, -10.5, 5.2, 1.35, 1.5, 'd', 'cream'],
+    [10.5, -8.5, 1.35, 5.2, 1.5, 'b', 'cream'],
+    [9.5, 10.5, 5.2, 1.35, 1.5, 'a', 'cream'],
+    [-10.5, 8.5, 1.35, 5.2, 1.5, 'c', 'cream'],
+    [-3.8, -3.2, 2.4, 4.8, 2.35, 'wallTop', 'a'],
+    [3.8, 3.2, 2.4, 4.8, 2.35, 'wallTop', 'b'],
+    [5.1, -3.9, 3.4, 1.25, 1.1, 'a', 'cream'],
+    [-5.1, 3.9, 3.4, 1.25, 1.1, 'b', 'cream'],
+  ]),
+  ice: Object.freeze([
+    [-8, -6, 1.35, 8.2, 2.1, 'wallTop', 'b'],
+    [8, 6, 1.35, 8.2, 2.1, 'wallTop', 'a'],
+    [-8, 9, 6.2, 1.35, 1.35, 'd', 'c'],
+    [8, -9, 6.2, 1.35, 1.35, 'd', 'a'],
+    [0, 0, 4.4, 4.4, 1.2, 'c', 'cream'],
+    [-13.5, 1.5, 3.1, 1.25, 1.05, 'a', 'cream'],
+    [13.5, -1.5, 3.1, 1.25, 1.05, 'b', 'cream'],
+  ]),
+  jungle: Object.freeze([
+    [-9, -8, 7.2, 1.35, 1.6, 'a', 'cream'],
+    [9, 8, 7.2, 1.35, 1.6, 'b', 'cream'],
+    [-7.5, 7.2, 1.35, 7.2, 2.2, 'wallTop', 'd'],
+    [7.5, -7.2, 1.35, 7.2, 2.2, 'wallTop', 'c'],
+    [0, -4.3, 5.4, 1.25, 1.15, 'd', 'a'],
+    [0, 4.3, 5.4, 1.25, 1.15, 'c', 'b'],
+    [-14, 0, 1.2, 4.2, 1.4, 'b', 'cream'],
+    [14, 0, 1.2, 4.2, 1.4, 'a', 'cream'],
+  ]),
+});
+
+export function getArenaPreviewData(arenaId) {
+  const theme = THEMES[arenaId] ?? THEMES.sunset;
+  return {
+    id: theme.id,
+    skyTop: theme.skyTop,
+    skyBottom: theme.skyBottom,
+    floor: theme.floor,
+    court: theme.court,
+    ring: theme.a,
+    wall: theme.wall,
+    obstacles: LAYOUTS[theme.id].map(([x, z, width, depth, height, color, stripe]) => ({
+      x, z, width, depth, height, color: theme[color], stripe: theme[stripe],
+    })),
+  };
+}
 
 function canvasTexture(label, color, accent) {
   const canvas = document.createElement('canvas');
@@ -188,35 +236,8 @@ export function createArena(scene, arenaId = 'sunset') {
   addBox(-h - 0.45, 0, 0.9, h * 2, 4.2, theme.wall, { stripe: theme.a });
   addBox(h + 0.45, 0, 0.9, h * 2, 4.2, theme.wall, { stripe: theme.a });
 
-  if (theme.id === 'sunset') {
-    // Circular routes with mixed high and low cover.
-    addBox(-9.5, -10.5, 5.2, 1.35, 1.5, theme.d, { stripe: theme.cream });
-    addBox(10.5, -8.5, 1.35, 5.2, 1.5, theme.b, { stripe: theme.cream });
-    addBox(9.5, 10.5, 5.2, 1.35, 1.5, theme.a, { stripe: theme.cream });
-    addBox(-10.5, 8.5, 1.35, 5.2, 1.5, theme.c, { stripe: theme.cream });
-    addBox(-3.8, -3.2, 2.4, 4.8, 2.35, theme.wallTop, { stripe: theme.a });
-    addBox(3.8, 3.2, 2.4, 4.8, 2.35, theme.wallTop, { stripe: theme.b });
-    addBox(5.1, -3.9, 3.4, 1.25, 1.1, theme.a, { stripe: theme.cream });
-    addBox(-5.1, 3.9, 3.4, 1.25, 1.1, theme.b, { stripe: theme.cream });
-  } else if (theme.id === 'ice') {
-    // Long icy lanes reward accuracy, while the center block breaks sight lines.
-    addBox(-8, -6, 1.35, 8.2, 2.1, theme.wallTop, { stripe: theme.b });
-    addBox(8, 6, 1.35, 8.2, 2.1, theme.wallTop, { stripe: theme.a });
-    addBox(-8, 9, 6.2, 1.35, 1.35, theme.d, { stripe: theme.c });
-    addBox(8, -9, 6.2, 1.35, 1.35, theme.d, { stripe: theme.a });
-    addBox(0, 0, 4.4, 4.4, 1.2, theme.c, { stripe: theme.cream });
-    addBox(-13.5, 1.5, 3.1, 1.25, 1.05, theme.a, { stripe: theme.cream });
-    addBox(13.5, -1.5, 3.1, 1.25, 1.05, theme.b, { stripe: theme.cream });
-  } else {
-    // Offset jungle-gym bars create a playful maze with several flank routes.
-    addBox(-9, -8, 7.2, 1.35, 1.6, theme.a, { stripe: theme.cream });
-    addBox(9, 8, 7.2, 1.35, 1.6, theme.b, { stripe: theme.cream });
-    addBox(-7.5, 7.2, 1.35, 7.2, 2.2, theme.wallTop, { stripe: theme.d });
-    addBox(7.5, -7.2, 1.35, 7.2, 2.2, theme.wallTop, { stripe: theme.c });
-    addBox(0, -4.3, 5.4, 1.25, 1.15, theme.d, { stripe: theme.a });
-    addBox(0, 4.3, 5.4, 1.25, 1.15, theme.c, { stripe: theme.b });
-    addBox(-14, 0, 1.2, 4.2, 1.4, theme.b, { stripe: theme.cream });
-    addBox(14, 0, 1.2, 4.2, 1.4, theme.a, { stripe: theme.cream });
+  for (const [x, z, width, depth, height, color, stripe] of LAYOUTS[theme.id]) {
+    addBox(x, z, width, depth, height, theme[color], { stripe: theme[stripe] });
   }
 
   for (const [x, z, color] of [[-17, -15, theme.a], [17, -15, theme.b], [-17, 15, theme.c], [17, 15, theme.d]]) {

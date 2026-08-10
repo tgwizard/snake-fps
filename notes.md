@@ -11,6 +11,7 @@
 - **Ammo:** 12 foam darts with a short reload. This creates useful breaks in combat without a weapon inventory.
 - **Spawn protection:** every respawn gets a visible two-second shield so nobody is tagged before regaining control.
 - **Arenas:** the first release includes three layouts: Sunset Sports Court has circular routes and mixed-height cover; Ice Pop Plaza has long accuracy lanes around a chunky center; Jungle Gym is an offset maze built for flanking.
+- **Arena picker:** map selection uses illustrated cards generated from the same obstacle definitions as gameplay, so previews cannot quietly drift away from the real layouts.
 
 ## Technical decisions
 
