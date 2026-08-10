@@ -33,22 +33,24 @@ function project(x, z, y, width, height) {
 }
 
 function drawBlock(ctx, obstacle, width, height) {
-  const { x, z, width: boxWidth, depth, height: boxHeight, color, stripe } = obstacle;
+  const { x, z, width: boxWidth, depth, height: boxHeight, y, color, stripe } = obstacle;
+  const bottomY = y - boxHeight / 2;
+  const topY = y + boxHeight / 2;
   const x0 = x - boxWidth / 2;
   const x1 = x + boxWidth / 2;
   const z0 = z - depth / 2;
   const z1 = z + depth / 2;
   const bottom = [
-    project(x0, z0, 0, width, height),
-    project(x1, z0, 0, width, height),
-    project(x1, z1, 0, width, height),
-    project(x0, z1, 0, width, height),
+    project(x0, z0, bottomY, width, height),
+    project(x1, z0, bottomY, width, height),
+    project(x1, z1, bottomY, width, height),
+    project(x0, z1, bottomY, width, height),
   ];
   const top = [
-    project(x0, z0, boxHeight, width, height),
-    project(x1, z0, boxHeight, width, height),
-    project(x1, z1, boxHeight, width, height),
-    project(x0, z1, boxHeight, width, height),
+    project(x0, z0, topY, width, height),
+    project(x1, z0, topY, width, height),
+    project(x1, z1, topY, width, height),
+    project(x0, z1, topY, width, height),
   ];
 
   polygon(ctx, [top[1], top[2], bottom[2], bottom[1]], shade(color, 0.7));
@@ -56,10 +58,11 @@ function drawBlock(ctx, obstacle, width, height) {
   polygon(ctx, top, cssColor(color), 'rgba(255,255,255,.22)', 0.75);
 
   const stripeY = Math.max(0.12, boxHeight * 0.25);
-  const stripeTop = project(x1, z1, boxHeight * 0.66 + stripeY / 2, width, height);
-  const stripeBottom = project(x1, z1, boxHeight * 0.66 - stripeY / 2, width, height);
-  const otherTop = project(x0, z1, boxHeight * 0.66 + stripeY / 2, width, height);
-  const otherBottom = project(x0, z1, boxHeight * 0.66 - stripeY / 2, width, height);
+  const stripeCenter = bottomY + boxHeight * 0.66;
+  const stripeTop = project(x1, z1, stripeCenter + stripeY / 2, width, height);
+  const stripeBottom = project(x1, z1, stripeCenter - stripeY / 2, width, height);
+  const otherTop = project(x0, z1, stripeCenter + stripeY / 2, width, height);
+  const otherBottom = project(x0, z1, stripeCenter - stripeY / 2, width, height);
   polygon(ctx, [stripeTop, otherTop, otherBottom, stripeBottom], cssColor(stripe));
 }
 
@@ -117,7 +120,7 @@ function drawArenaPreview(canvas) {
   ctx.globalAlpha = 1;
 
   [...data.obstacles]
-    .sort((left, right) => (left.x + left.z) - (right.x + right.z))
+    .sort((left, right) => (left.x + left.z + left.y * 3) - (right.x + right.z + right.y * 3))
     .forEach((obstacle) => drawBlock(ctx, obstacle, width, height));
 
   const vignette = ctx.createLinearGradient(0, 0, 0, height);

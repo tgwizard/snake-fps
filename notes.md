@@ -9,8 +9,11 @@
 - **Damage model:** head 52, torso 31, limbs 19. Clear hit markers reward accuracy without making one accidental hit an instant elimination.
 - **Movement:** first-person walk, sprint, jump, and crouch with a slightly arcadey speed curve. Collision stays simple and forgiving.
 - **Ammo:** 12 foam darts with a short reload. This creates useful breaks in combat without a weapon inventory.
+- **Reload input:** `R` is the explicit manual reload binding and stays visible in the menu controls and ammo HUD; reaching zero darts still starts the same reload automatically.
 - **Spawn protection:** every respawn gets a visible two-second shield so nobody is tagged before regaining control.
+- **Opponent health bars:** damaged bots show a correctly scaled billboard only within 24 meters and with a clear sight line. Both the background and fill respect scene depth, so no part of the bar leaks through walls.
 - **Arenas:** the first release includes three layouts: Sunset Sports Court has circular routes and mixed-height cover; Ice Pop Plaza has long accuracy lanes around a chunky center; Jungle Gym is an offset maze built for flanking.
+- **Hiding spaces:** Sunset now has opposing roofed dugouts, Ice Pop has two enterable three-sided bunkers, and Jungle Gym has a covered cross-court tunnel. Roof meshes block shots but not ground movement, while the supporting walls participate in normal collision and line-of-sight checks.
 - **Arena picker:** map selection uses illustrated cards generated from the same obstacle definitions as gameplay, so previews cannot quietly drift away from the real layouts.
 
 ## Technical decisions

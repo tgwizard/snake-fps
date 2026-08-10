@@ -48,6 +48,14 @@ const LAYOUTS = Object.freeze({
     [3.8, 3.2, 2.4, 4.8, 2.35, 'wallTop', 'b'],
     [5.1, -3.9, 3.4, 1.25, 1.1, 'a', 'cream'],
     [-5.1, 3.9, 3.4, 1.25, 1.1, 'b', 'cream'],
+    [-15, 0, 0.6, 6, 3.6, 'wall', 'c'],
+    [-13, -2.7, 4.5, 0.6, 3.6, 'wallTop', 'a'],
+    [-13, 2.7, 4.5, 0.6, 3.6, 'wallTop', 'a'],
+    [-13, 0, 4.6, 6, 0.3, 'c', 'cream', { y: 3.65, collide: false }],
+    [15, 0, 0.6, 6, 3.6, 'wall', 'c'],
+    [13, -2.7, 4.5, 0.6, 3.6, 'wallTop', 'b'],
+    [13, 2.7, 4.5, 0.6, 3.6, 'wallTop', 'b'],
+    [13, 0, 4.6, 6, 0.3, 'c', 'cream', { y: 3.65, collide: false }],
   ]),
   ice: Object.freeze([
     [-8, -6, 1.35, 8.2, 2.1, 'wallTop', 'b'],
@@ -57,6 +65,14 @@ const LAYOUTS = Object.freeze({
     [0, 0, 4.4, 4.4, 1.2, 'c', 'cream'],
     [-13.5, 1.5, 3.1, 1.25, 1.05, 'a', 'cream'],
     [13.5, -1.5, 3.1, 1.25, 1.05, 'b', 'cream'],
+    [0, 15, 5.4, 0.6, 3.7, 'wallTop', 'b'],
+    [-2.45, 12.8, 0.6, 4.7, 3.7, 'wallTop', 'a'],
+    [2.45, 12.8, 0.6, 4.7, 3.7, 'wallTop', 'a'],
+    [0, 12.8, 5.5, 4.8, 0.32, 'd', 'c', { y: 3.75, collide: false }],
+    [0, -15, 5.4, 0.6, 3.7, 'wallTop', 'b'],
+    [-2.45, -12.8, 0.6, 4.7, 3.7, 'wallTop', 'a'],
+    [2.45, -12.8, 0.6, 4.7, 3.7, 'wallTop', 'a'],
+    [0, -12.8, 5.5, 4.8, 0.32, 'd', 'c', { y: 3.75, collide: false }],
   ]),
   jungle: Object.freeze([
     [-9, -8, 7.2, 1.35, 1.6, 'a', 'cream'],
@@ -67,6 +83,9 @@ const LAYOUTS = Object.freeze({
     [0, 4.3, 5.4, 1.25, 1.15, 'c', 'b'],
     [-14, 0, 1.2, 4.2, 1.4, 'b', 'cream'],
     [14, 0, 1.2, 4.2, 1.4, 'a', 'cream'],
+    [0, -2.1, 9.2, 0.65, 3.55, 'wallTop', 'd'],
+    [0, 2.1, 9.2, 0.65, 3.55, 'wallTop', 'c'],
+    [0, 0, 9.4, 4.85, 0.34, 'wall', 'a', { y: 3.63, collide: false }],
   ]),
 });
 
@@ -80,8 +99,9 @@ export function getArenaPreviewData(arenaId) {
     court: theme.court,
     ring: theme.a,
     wall: theme.wall,
-    obstacles: LAYOUTS[theme.id].map(([x, z, width, depth, height, color, stripe]) => ({
-      x, z, width, depth, height, color: theme[color], stripe: theme[stripe],
+    obstacles: LAYOUTS[theme.id].map(([x, z, width, depth, height, color, stripe, options = {}]) => ({
+      x, z, width, depth, height, y: options.y ?? height / 2,
+      color: theme[color], stripe: theme[stripe], collide: options.collide !== false,
     })),
   };
 }
@@ -205,7 +225,7 @@ export function createArena(scene, arenaId = 'sunset') {
       new THREE.BoxGeometry(width, height, depth),
       new THREE.MeshStandardMaterial({ color, roughness: 0.73, metalness: options.metalness ?? 0.02 }),
     );
-    object.position.set(x, height / 2, z);
+    object.position.set(x, options.y ?? height / 2, z);
     object.castShadow = true;
     object.receiveShadow = true;
     root.add(object);
@@ -224,7 +244,8 @@ export function createArena(scene, arenaId = 'sunset') {
         new THREE.BoxGeometry(width + 0.025, Math.min(0.18, height / 4), depth + 0.025),
         new THREE.MeshBasicMaterial({ color: options.stripe }),
       );
-      stripe.position.set(x, Math.min(height - 0.2, height * 0.68), z);
+      const bottomY = object.position.y - height / 2;
+      stripe.position.set(x, bottomY + Math.min(height - 0.2, height * 0.68), z);
       root.add(stripe);
     }
     return object;
@@ -236,8 +257,8 @@ export function createArena(scene, arenaId = 'sunset') {
   addBox(-h - 0.45, 0, 0.9, h * 2, 4.2, theme.wall, { stripe: theme.a });
   addBox(h + 0.45, 0, 0.9, h * 2, 4.2, theme.wall, { stripe: theme.a });
 
-  for (const [x, z, width, depth, height, color, stripe] of LAYOUTS[theme.id]) {
-    addBox(x, z, width, depth, height, theme[color], { stripe: theme[stripe] });
+  for (const [x, z, width, depth, height, color, stripe, options = {}] of LAYOUTS[theme.id]) {
+    addBox(x, z, width, depth, height, theme[color], { ...options, stripe: theme[stripe] });
   }
 
   for (const [x, z, color] of [[-17, -15, theme.a], [17, -15, theme.b], [-17, 15, theme.c], [17, 15, theme.d]]) {

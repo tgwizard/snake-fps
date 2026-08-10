@@ -746,6 +746,14 @@ kbd {
   letter-spacing: 0.09em;
 }
 
+.reload-label.is-urgent {
+  animation: reload-pulse 700ms ease-in-out infinite alternate;
+}
+
+@keyframes reload-pulse {
+  to { color: #fff2bf; }
+}
+
 .damage-flash {
   position: absolute;
   inset: 0;

@@ -29,3 +29,11 @@ test('every relative module imported by the vendored Three.js entry exists', () 
   }
   assert.equal(existsSync(path.join(root, 'vendor', 'THREE-LICENSE.txt')), true);
 });
+
+test('reload is consistently bound and labeled as R', () => {
+  const html = readFileSync(path.join(root, 'index.html'), 'utf8');
+  const game = readFileSync(path.join(root, 'src', 'game.js'), 'utf8');
+  assert.match(html, /<kbd>R<\/kbd> reload/);
+  assert.match(html, /R · RELOAD/);
+  assert.match(game, /consume\('KeyR'\)/);
+});

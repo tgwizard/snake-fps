@@ -5,6 +5,7 @@ const GREEN_DARK = 0x2f7f3b;
 const BELLY = 0xffe9a4;
 const BLUE = 0x176fc0;
 const ORANGE = 0xff6a24;
+const healthParentQuaternion = new THREE.Quaternion();
 
 function toon(color, options = {}) {
   return new THREE.MeshStandardMaterial({
@@ -109,11 +110,10 @@ function makeBlaster(parent, compact = false) {
 
 function healthBar() {
   const group = new THREE.Group();
-  const background = mesh(new THREE.PlaneGeometry(1.05, 0.12), new THREE.MeshBasicMaterial({ color: 0x062530, transparent: true, opacity: 0.82 }), group, [0, 0, 0]);
+  const background = mesh(new THREE.PlaneGeometry(1.3, 0.14), new THREE.MeshBasicMaterial({ color: 0x062530, transparent: true, opacity: 0.82, depthWrite: false }), group, [0, 0, 0]);
   background.castShadow = false;
-  const fill = mesh(new THREE.PlaneGeometry(0.96, 0.067), new THREE.MeshBasicMaterial({ color: 0xb9ef43, depthTest: false }), group, [0, 0, 0.006]);
+  const fill = mesh(new THREE.PlaneGeometry(1.18, 0.078), new THREE.MeshBasicMaterial({ color: 0xb9ef43, depthWrite: false }), group, [0, 0, 0.006]);
   fill.castShadow = false;
-  fill.renderOrder = 4;
   group.position.y = 3.72;
   group.visible = false;
   return { group, fill };
@@ -245,7 +245,7 @@ export function bindBot(character, bot) {
   for (const box of character.hitboxes) box.userData.bot = bot;
 }
 
-export function updateCharacterPose(character, elapsed, speed, healthRatio, camera, shielded = false) {
+export function updateCharacterPose(character, elapsed, speed, healthRatio, camera, shielded = false, healthVisible = true) {
   const pace = Math.min(1, speed / 4.5);
   const step = Math.sin(elapsed * (5 + pace * 5));
   character.parts.leftLeg.rotation.z = -0.05 + step * 0.32 * pace;
@@ -254,9 +254,12 @@ export function updateCharacterPose(character, elapsed, speed, healthRatio, came
   character.parts.rightArm.rotation.z = 0.055 + step * 0.035 * pace;
   character.parts.gun.position.y = 1.52 + Math.abs(step) * 0.02;
   character.healthFill.scale.x = Math.max(0.001, healthRatio);
-  character.healthFill.position.x = (healthRatio - 1) * 0.48;
-  character.healthBar.visible = healthRatio < 0.999;
-  if (camera) character.healthBar.lookAt(camera.position);
+  character.healthFill.position.x = (healthRatio - 1) * 0.59;
+  character.healthBar.visible = healthRatio < 0.999 && healthVisible;
+  if (camera) {
+    character.group.getWorldQuaternion(healthParentQuaternion).invert();
+    character.healthBar.quaternion.copy(healthParentQuaternion).multiply(camera.quaternion);
+  }
   character.shield.visible = shielded;
   if (shielded) {
     character.shield.material.opacity = 0.1 + Math.sin(elapsed * 8) * 0.035;

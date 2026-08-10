@@ -350,6 +350,11 @@ export class CobraClashGame {
       }
 
       bot.character.group.position.set(bot.position.x, 0, bot.position.z);
+      const playerDistance = Math.hypot(bot.position.x - this.player.position.x, bot.position.z - this.player.position.z);
+      const barTarget = this.actorPosition(bot, tempA);
+      const healthVisible = this.player.alive
+        && playerDistance < 24
+        && this.hasLineOfSight(this.player.position, barTarget, playerDistance);
       updateCharacterPose(
         bot.character,
         this.elapsed + bot.id,
@@ -357,6 +362,7 @@ export class CobraClashGame {
         bot.health / CONFIG.maxHealth,
         this.camera,
         bot.shieldUntil > this.elapsed,
+        healthVisible,
       );
     }
   }
@@ -618,7 +624,8 @@ export class CobraClashGame {
         ? 'Healing'
         : player.health < 35 ? 'Find cover!' : 'Ready';
     this.ui.ammoNumber.textContent = player.ammo;
-    this.ui.reloadLabel.textContent = player.reloadTimer > 0 ? 'RELOADING…' : player.ammo <= 3 ? 'R TO RELOAD' : 'FOAM READY';
+    this.ui.reloadLabel.textContent = player.reloadTimer > 0 ? 'RELOADING…' : 'R · RELOAD';
+    this.ui.reloadLabel.classList.toggle('is-urgent', player.ammo <= 3 && player.reloadTimer <= 0);
     for (const actor of [player, ...this.bots]) {
       const id = actor === player ? 'player' : String(actor.id);
       const score = this.ui.scoreStrip.querySelector(`[data-actor-id="${id}"]`);
@@ -671,8 +678,11 @@ export class CobraClashGame {
 
   quitToMenu() {
     this.state = 'menu';
+    this.player.respawnTimer = 0;
     this.clearBots();
     this.clearEffects();
+    this.ui.respawn.classList.remove('is-visible');
+    this.ui.damageFlash.classList.remove('active');
     this.placeMenuCamera();
     this.onStateChange('menu');
   }
