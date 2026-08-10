@@ -46,14 +46,29 @@ test('the launch build exposes three distinct arenas', () => {
 test('cobra models keep the concept-art silhouette and matching hit zones', () => {
   const character = createBotCharacter(0xff6b35);
   let visibleMeshes = 0;
+  let outlineMeshes = 0;
   character.group.traverse((object) => {
     if (object.isMesh && !object.userData.hitZone) visibleMeshes += 1;
+    if (object.isMesh && object.material.side === THREE.BackSide) outlineMeshes += 1;
   });
-  assert.ok(visibleMeshes >= 50);
-  assert.ok(character.hitboxes[0].geometry.parameters.width >= 1.5);
+  assert.ok(visibleMeshes >= 150);
+  assert.ok(outlineMeshes >= 30);
+  assert.ok(character.hitboxes[0].geometry.parameters.width >= 1.9);
+  assert.ok(character.hitboxes.length >= 6);
   assert.equal(character.parts.leftArm.type, 'Group');
   assert.equal(character.parts.rightArm.type, 'Group');
+  assert.equal(character.parts.leftLeg.type, 'Group');
+  assert.equal(character.parts.rightLeg.type, 'Group');
+  assert.equal(character.parts.eyes.length, 2);
+  assert.equal(character.parts.tail.type, 'Group');
   assert.ok(character.healthBar.position.y >= 3.7);
+
+  character.group.updateMatrixWorld(true);
+  const shoeFloor = Math.min(
+    ...character.parts.leftLeg.children.filter((part) => part.isMesh).map((part) => new THREE.Box3().setFromObject(part).min.y),
+    ...character.parts.rightLeg.children.filter((part) => part.isMesh).map((part) => new THREE.Box3().setFromObject(part).min.y),
+  );
+  assert.ok(shoeFloor >= -0.002, `character geometry dips below the floor: ${shoeFloor}`);
 });
 
 test('opponent health bars face the camera and never render through cover', () => {

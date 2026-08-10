@@ -28,7 +28,10 @@
 ## Art decision
 
 - The supplied concept is a visual reference, not copied directly into the game. The in-game title character is an original generated render with a clean transparent cutout, delivered as an optimized WebP with a PNG favicon crop.
-- The 3D opponents now prioritize the same visual anchors as the concept: a very broad two-tone hood, long plated cobra neck, smiling snout and small fangs, muscular segmented arms, piped sports jersey, bright shorts and gloves, chunky multi-color sneakers, and a thick banded tail. Hit zones were resized to match the new silhouette.
+- The opponents use an original procedural 3D mascot built around the concept's strongest visual anchors: a broad recessed hood, long plated neck, layered smiling face and small fangs, athletic arms, fitted jersey, bright shorts, high-top sneakers, and a thick banded tail.
+- The second character-art pass changed the model from a pile of independent primitives into an articulated pose. Shoulders flow into bent arms, gloved hands meet the blaster, legs hinge from their hips, shoes sit on the floor, and the visible hood and tail are covered by matching damage hit zones.
+- Key organic forms use slightly expanded dark back-face shells for a clean cartoon outline. Smaller skin highlights, hood ridges, muscle marks, jersey piping, a tiny cobra badge, sneaker panels and blaster darts carry the illustrated detail without depending on image textures.
+- Bots breathe, blink, shift their head, plant alternating steps, and gently sway their tail. The motion is deliberately subtle so aim and hit-zone readability remain more important than animation spectacle.
 
 ## Deferred
 
